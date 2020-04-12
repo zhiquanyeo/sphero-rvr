@@ -1,5 +1,5 @@
 {
-  "name": "sphero-rvr",
+  "name": "sphero-rvr-base",
   "version": "0.1.0",
   "description": "API for the Sphero RVR",
   "main": "dist/package.js",
