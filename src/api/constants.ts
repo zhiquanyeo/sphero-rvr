@@ -135,7 +135,21 @@ export class MessageParserFlags {
 }
 
 export enum RawMotorModes {
-    off = 0,
-    forward = 1,
-    reverse = 2
+    OFF = 0,
+    FORWARD = 1,
+    REVERSE = 2
 }
+
+export enum LED {
+    RIGHT_HEADLIGHT = 0,
+    LEFT_HEADLIGHT = 3,
+    LEFT_STATUS = 6,
+    RIGHT_STATUS = 9,
+    BATTERY_DOOR_REAR = 12,
+    BATTERY_DOOR_FRONT = 15,
+    POWER_BUTTON_FRONT = 18,
+    POWER_BUTTON_REAR = 21,
+    LEFT_BRAKELIGHT = 24,
+    RIGHT_BRAKELIGHT = 27
+}
+

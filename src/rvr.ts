@@ -3,10 +3,11 @@ import { MessageParser, MessageParserFactory } from "./api/message-parser";
 import { IMessage, IResponseMessage, ICommandMessage, makeCommandMessageWithDefaultFlags } from "./api/messages";
 import { DeferredPromise } from "./utils/deferred-promise";
 import { ByteUtils } from "./utils/byte-utils";
-import { TargetsAndSources, RawMotorModes } from "./api/constants";
+import { TargetsAndSources, RawMotorModes, LED } from "./api/constants";
 import { makeEchoRequest, parseEchoResponse } from "./api/devices/api-shell/api-shell-commands";
 import { makeWakeRequest, makeSleepRequest, makeGetBatteryPercentageRequest, parseGetBatteryPercentageResponse } from "./api/devices/power/power-commands";
 import { makeRawMotorsRequest, makeResetYawRequest, makeDriveWithHeadingRequest } from "./api/devices/drive/drive-commands";
+import { makeSetAllLedsRequest, makeSetSingleRgbLedRequest } from "./api/devices/io/io-commands";
 
 
 export class SpheroRVR {
@@ -83,6 +84,7 @@ export class SpheroRVR {
         });
     }
 
+    // Drive (Device 0x16)
     public setRawMotors(leftMode: RawMotorModes, leftSpeed: number,
                         rightMode: RawMotorModes, rightSpeed: number): Promise<void | Error> {
         const message = makeRawMotorsRequest(leftMode, leftSpeed, rightMode, rightSpeed);
@@ -119,6 +121,24 @@ export class SpheroRVR {
 
         const message = makeDriveWithHeadingRequest(speed, heading);
 
+        return this.sendCommandMessageInternal(message)
+        .catch(err => {
+            return err;
+        });
+    }
+
+    // IO (Device 0x1A)
+    public setAllLeds(red: number, green: number, blue: number): Promise<void | Error> {
+        const message = makeSetAllLedsRequest(red, green, blue);
+
+        return this.sendCommandMessageInternal(message)
+        .catch(err => {
+            return err;
+        });
+    }
+
+    public setSingleLed(index: LED, red: number, green: number, blue: number): Promise<void | Error> {
+        const message = makeSetSingleRgbLedRequest(index, red, green, blue);
         return this.sendCommandMessageInternal(message)
         .catch(err => {
             return err;
