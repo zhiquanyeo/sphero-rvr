@@ -49,10 +49,9 @@ export class MessageParser extends (EventEmitter as new() => MessageParserEventE
             return;
         }
 
-        for (const i of bytes) {
-            const byte: number = bytes[i];
+        bytes.forEach((byte) => {
             this.processByte(byte);
-        }
+        });
 
     }
 
@@ -235,7 +234,7 @@ export class MessageParser extends (EventEmitter as new() => MessageParserEventE
                                        dataRawBytes: number[]): number[] {
 
         let runningChecksum = 0;
-        const rawBytes = [];
+        const rawBytes: number[] = [];
         rawBytes.push(MessageParserFlags.startOfPacket);
 
         this.encodeByteInBytes(rawBytes, flags);
@@ -260,7 +259,7 @@ export class MessageParser extends (EventEmitter as new() => MessageParserEventE
         this.encodeByteInBytes(rawBytes, sequence);
         runningChecksum += sequence;
 
-        if (errorCode != null) {
+        if (errorCode !== null) {
             this.encodeByteInBytes(rawBytes, errorCode);
             runningChecksum += errorCode;
         }
@@ -269,11 +268,11 @@ export class MessageParser extends (EventEmitter as new() => MessageParserEventE
             dataRawBytes = [];
         }
 
-        for (const i of dataRawBytes) {
-            const dataByte = dataRawBytes[i];
+        dataRawBytes.forEach((dataByte) => {
             this.encodeByteInBytes(rawBytes, dataByte);
             runningChecksum += dataByte;
-        }
+        });
+
 
         runningChecksum = ~(runningChecksum % 256);
         if (runningChecksum < 0) {
