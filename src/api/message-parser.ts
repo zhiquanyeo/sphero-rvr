@@ -19,9 +19,9 @@ enum ParserState {
     WAITING_FOR_PACKET_END = 1
 };
 
-export class MessageParser extends (EventEmitter as { new(): MessageParserEventEmitter }) {
+export class MessageParser extends (EventEmitter as new() => MessageParserEventEmitter) {
     private _state: ParserState = ParserState.WAITING_FOR_PACKET_START;
-    private _activeBuffer: Array<number> = [];
+    private _activeBuffer: number[] = [];
 
     private _messageParsedCallback: MessageParsedCallback;
     private _protocolErrorCallback: ProtocolErrorCallback;
@@ -44,18 +44,19 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
         this._protocolErrorCallback = cb;
     }
 
-    public processIncomingBytes(bytes: Array<number>): void {
+    public processIncomingBytes(bytes: number[]): void {
         if (!bytes || bytes.length === 0) {
             return;
         }
 
-        for (let i = 0; i < bytes.length; i++) {
-            let byte: number = bytes[i];
+        for (const i of bytes) {
+            const byte: number = bytes[i];
             this.processByte(byte);
         }
+
     }
 
-    public makeRawBufferForMessage(message: IMessage): Array<number> {
+    public makeRawBufferForMessage(message: IMessage): number[] {
         return this.makeBufferForMessagePacket(
             message.flags,
             message.targetId,
@@ -70,7 +71,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
 
     private processByte(byte: number): void {
         if (this._activeBuffer.length === 0 &&
-            byte != MessageParserFlags.startOfPacket) {
+            byte !== MessageParserFlags.startOfPacket) {
 
             this._hasSkippedData = true;
             // The current buffer is empty and we don't have a
@@ -106,15 +107,16 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
                     return;
                 }
 
-                if (this._runningChecksum != 0xFF) {
+                if (this._runningChecksum !== 0xFF) {
                     this.broadcastProtocolError(ProtocolErrorCodes.badChecksum);
                     this.resetParser();
                     return;
                 }
 
                 const isRequestingResponse: boolean =
-                        (this._activeBuffer[1] & MessageFlags.requestsResponse) == (MessageFlags.requestsResponse);
-                const isResponse: boolean = (this._activeBuffer[1] & MessageFlags.isResponse) == MessageFlags.isResponse;
+                        (this._activeBuffer[1] & MessageFlags.requestsResponse) === (MessageFlags.requestsResponse);
+                const isResponse: boolean =
+                        (this._activeBuffer[1] & MessageFlags.isResponse) === MessageFlags.isResponse;
 
                 if (isRequestingResponse && isResponse) {
                     this.broadcastProtocolError(ProtocolErrorCodes.badFlags);
@@ -122,7 +124,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
                     return;
                 }
 
-                const bufCopy: Array<number> = this._activeBuffer.slice();
+                const bufCopy: number[] = this._activeBuffer.slice();
                 this.resetParser();
 
                 const message: IMessage = this.makeMessageFromBuffer(bufCopy);
@@ -161,7 +163,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
         this._runningChecksum = ByteUtils.incrementByteValue(this._runningChecksum, byte);
     }
 
-    private makeMessageFromBuffer(bytes: Array<number>): IMessage {
+    private makeMessageFromBuffer(bytes: number[]): IMessage {
         let flags: number = 0x00;
         let sequence: number = 0x00;
 
@@ -173,7 +175,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
         let did: number = 0x00;
         let cid: number = 0x00;
 
-        let dataRawBytes: Array<number> = [];
+        const dataRawBytes: number[] = [];
 
         let errorCode: number = 0;
 
@@ -191,7 +193,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
                 sourceId = bytes[index++];
             }
 
-            let endingBytesToIgnore: number = 2;
+            const endingBytesToIgnore: number = 2;
 
             // +3 to account for device id, command id and sequence
             if ((index + 3) > bytes.length - endingBytesToIgnore) {
@@ -211,14 +213,14 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
                 dataRawBytes.push(rawByte);
             }
 
-            isResponse = (bytes[1] & MessageFlags.isResponse) == MessageFlags.isResponse;
+            isResponse = (bytes[1] & MessageFlags.isResponse) === MessageFlags.isResponse;
 
         }
         catch (e) {
-
+            console.log(e);
         }
 
-        let message: IMessage = isResponse
+        const message: IMessage = isResponse
             ? makeResponseMessage(flags, sequence, targetId, sourceId, did, "", cid, "", errorCode, dataRawBytes)
             : makeCommandMessage(flags, sequence, targetId, sourceId, did, "", cid, "", dataRawBytes);
 
@@ -230,10 +232,10 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
                                        sourceId: number, deviceId: number,
                                        commandId: number, sequence: number,
                                        errorCode: number | null,
-                                       dataRawBytes: Array<number>): Array<number> {
+                                       dataRawBytes: number[]): number[] {
 
         let runningChecksum = 0;
-        let rawBytes = [];
+        const rawBytes = [];
         rawBytes.push(MessageParserFlags.startOfPacket);
 
         this.encodeByteInBytes(rawBytes, flags);
@@ -267,7 +269,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
             dataRawBytes = [];
         }
 
-        for (let i = 0; i < dataRawBytes.length; i++) {
+        for (const i of dataRawBytes) {
             const dataByte = dataRawBytes[i];
             this.encodeByteInBytes(rawBytes, dataByte);
             runningChecksum += dataByte;
@@ -293,7 +295,7 @@ export class MessageParser extends (EventEmitter as { new(): MessageParserEventE
         return ((byte) | MessageParserFlags.slipEscapeMask);
     }
 
-    private encodeByteInBytes(bytes: Array<number>, byte: number): void {
+    private encodeByteInBytes(bytes: number[], byte: number): void {
         switch (byte) {
             case MessageParserFlags.startOfPacket:
                 bytes.push(MessageParserFlags.escape);
