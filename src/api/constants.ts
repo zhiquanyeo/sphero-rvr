@@ -133,3 +133,9 @@ export class MessageParserFlags {
     public static readonly escapedEndOfPacket: number = 0x50;
     public static readonly slipEscapeMask: number = 0x88;
 }
+
+export enum RawMotorModes {
+    off = 0,
+    forward = 1,
+    reverse = 2
+}

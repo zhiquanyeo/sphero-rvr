@@ -18,9 +18,9 @@ describe("Message Parser", () => {
         const commandId = 6;
         const commandName = "test-command";
 
-        const dataBytes: Array<number> = [0x01, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [0x01, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeCommandMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeCommandMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
@@ -41,7 +41,7 @@ describe("Message Parser", () => {
 
         MessageParserFactory
             .getMessageParser()
-            .processIncomingBytes(message.messageRawBytes);
+            .processIncomingBytes(cmdMessage.messageRawBytes);
     });
 
     test("Parses a byte buffer correctly (event)", done => {
@@ -54,9 +54,9 @@ describe("Message Parser", () => {
         const commandId = 6;
         const commandName = "test-command";
 
-        const dataBytes: Array<number> = [0x01, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [0x01, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeCommandMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeCommandMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
@@ -77,11 +77,11 @@ describe("Message Parser", () => {
 
         MessageParserFactory
             .getMessageParser()
-            .processIncomingBytes(message.messageRawBytes);
+            .processIncomingBytes(cmdMessage.messageRawBytes);
     });
 
     test("Invalid packet (multiple start packets)", done => {
-        const buffer: Array<number> = [MessageParserFlags.startOfPacket, 0x01, MessageParserFlags.startOfPacket];
+        const buffer: number[] = [MessageParserFlags.startOfPacket, 0x01, MessageParserFlags.startOfPacket];
 
         MessageParserFactory
             .getMessageParser()
@@ -105,16 +105,16 @@ describe("Message Parser", () => {
         const commandId = 6;
         const commandName = "test-command";
 
-        const dataBytes: Array<number> = [0x01, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [0x01, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeCommandMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeCommandMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
                                                         dataBytes);
 
-        let buffer: Array<number> = [0x01, 0x02, 0x03];
-        buffer = buffer.concat(message.messageRawBytes);
+        let buffer: number[] = [0x01, 0x02, 0x03];
+        buffer = buffer.concat(cmdMessage.messageRawBytes);
 
         let errorOccured: boolean = false;
 

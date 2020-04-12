@@ -18,8 +18,8 @@ export interface IMessage {
     readonly commandId: number;
     readonly commandName: string;
 
-    readonly dataRawBytes: Array<number>; // Payload
-    readonly messageRawBytes: Array<number>; // Full message
+    readonly dataRawBytes: number[]; // Payload
+    readonly messageRawBytes: number[]; // Full message
 
     readonly data: object | null;
 
@@ -29,6 +29,9 @@ export interface IMessage {
 
     serialize(): void;
 }
+
+export interface ICommandMessage extends IMessage {}
+export interface IResponseMessage extends IMessage {}
 
 export abstract class BaseMessage implements IMessage {
     protected _flags: number = 0x00;
@@ -46,11 +49,11 @@ export abstract class BaseMessage implements IMessage {
     }
 
     public get isResponse(): boolean {
-        return (this.flags & MessageFlags.isResponse) == MessageFlags.isResponse;
+        return (this.flags & MessageFlags.isResponse) === MessageFlags.isResponse;
     }
 
     public get isRequestingResponse(): boolean {
-        return (this.flags & MessageFlags.requestsResponse) == MessageFlags.requestsResponse;
+        return (this.flags & MessageFlags.requestsResponse) === MessageFlags.requestsResponse;
     }
 
     protected _targetId: number = 0x00;
@@ -83,13 +86,13 @@ export abstract class BaseMessage implements IMessage {
         return this._commandName;
     }
 
-    protected _dataRawBytes: Array<number> = [];
-    public get dataRawBytes(): Array<number> {
+    protected _dataRawBytes: number[] = [];
+    public get dataRawBytes(): number[] {
         return this._dataRawBytes;
     }
 
-    protected _messageRawBytes: Array<number> = [];
-    public get messageRawBytes(): Array<number> {
+    protected _messageRawBytes: number[] = [];
+    public get messageRawBytes(): number[] {
         return this._messageRawBytes;
     }
 
@@ -117,7 +120,7 @@ export abstract class BaseMessage implements IMessage {
                           targetId: number, sourceId: number,
                           deviceId: number, deviceName: string,
                           commandId: number, commandName: string,
-                          dataRawBytes: Array<number> | null = null) {
+                          dataRawBytes: number[] | null = null) {
 
         this._flags = flags;
         this._sequence = sequence;
@@ -148,12 +151,12 @@ function getNextSequenceNumber(): number {
     return _sequence++ % 256;
 }
 
-class CommandMessage extends BaseMessage {
+class CommandMessage extends BaseMessage implements ICommandMessage {
     constructor(flags: number, sequence: number,
                 targetId: number, sourceId: number,
                 deviceId: number, deviceName: string,
                 commandId: number, commandName: string,
-                dataRawBytes: Array<number> | null = null) {
+                dataRawBytes: number[] | null = null) {
 
         super(flags, sequence,
               targetId, sourceId,
@@ -167,7 +170,7 @@ export function makeCommandMessage(flags: number, sequence: number | null,
                           targetId: number, sourceId: number,
                           deviceId: number, deviceName: string,
                           commandId: number, commandName: string,
-                          dataRawBytes: Array<number> | null = null): CommandMessage {
+                          dataRawBytes: number[] | null = null): CommandMessage {
 
     if (sequence == null) {
         sequence = 0x00;
@@ -188,10 +191,10 @@ export function makeCommandMessage(flags: number, sequence: number | null,
 export function makeCommandMessageWithDefaultFlags(targetId: number, sourceId: number,
                                                    deviceId: number, deviceName: string,
                                                    commandId: number, commandName: string,
-                                                   dataRawBytes: Array<number> | null = null): CommandMessage {
+                                                   dataRawBytes: number[] | null = null): CommandMessage {
 
-    let flags: number = MessageFlags.defaultRequestWithResponseFlags;
-    let sequence: number = getNextSequenceNumber();
+    const flags: number = MessageFlags.defaultRequestWithResponseFlags;
+    const sequence: number = getNextSequenceNumber();
 
     return makeCommandMessage(flags, sequence,
                               targetId, sourceId,
@@ -203,10 +206,10 @@ export function makeCommandMessageWithDefaultFlags(targetId: number, sourceId: n
 export function makeCommandMessageWithNoResponseDefaultFlags(targetId: number, sourceId: number,
                                                              deviceId: number, deviceName: string,
                                                              commandId: number, commandName: string,
-                                                             dataRawBytes: Array<number> | null = null): CommandMessage {
+                                                             dataRawBytes: number[] | null = null): CommandMessage {
 
-    let flags: number = MessageFlags.defaultRequestWithNoResponseFlags;
-    let sequence: number = getNextSequenceNumber();
+    const flags: number = MessageFlags.defaultRequestWithNoResponseFlags;
+    const sequence: number = getNextSequenceNumber();
 
     return makeCommandMessage(flags, sequence,
         targetId, sourceId,
@@ -216,13 +219,13 @@ export function makeCommandMessageWithNoResponseDefaultFlags(targetId: number, s
 }
 
 // === RESPONSE MESSAGES ===
-class ResponseMessage extends BaseMessage {
+class ResponseMessage extends BaseMessage implements IResponseMessage {
     constructor(flags: number, sequence: number,
                 targetId: number, sourceId: number,
                 deviceId: number, deviceName: string,
                 commandId: number, commandName: string,
                 errorCode: number,
-                dataRawBytes: Array<number> | null = null) {
+                dataRawBytes: number[] | null = null) {
 
         super(flags, sequence,
               targetId, sourceId,
@@ -241,7 +244,7 @@ export function makeResponseMessage(flags: number, sequence: number | null,
                           deviceId: number, deviceName: string,
                           commandId: number, commandName: string,
                           errorCode: number,
-                          dataRawBytes: Array<number> | null = null): ResponseMessage {
+                          dataRawBytes: number[] | null = null): ResponseMessage {
 
     if (sequence == null) {
         sequence = 0x00;
@@ -264,10 +267,10 @@ export function makeResponseMessageWithDefaultFlags(targetId: number, sourceId: 
                                                    deviceId: number, deviceName: string,
                                                    commandId: number, commandName: string,
                                                    errorCode: number,
-                                                   dataRawBytes: Array<number> | null = null): ResponseMessage {
+                                                   dataRawBytes: number[] | null = null): ResponseMessage {
 
-    let flags: number = MessageFlags.defaultRequestWithResponseFlags;
-    let sequence: number = 0x00;
+    const flags: number = MessageFlags.defaultRequestWithResponseFlags;
+    const sequence: number = 0x00;
 
     return makeResponseMessage(flags, sequence,
                               targetId, sourceId,

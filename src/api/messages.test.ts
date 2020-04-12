@@ -13,15 +13,15 @@ describe("Command Message", () => {
         const commandId = 6;
         const commandName = "test-command";
 
-        const dataBytes: Array<number> = [0x01, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [0x01, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeCommandMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeCommandMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
                                                         dataBytes);
 
-        let expected: Array<number> =
+        let expected: number[] =
             [MessageParserFlags.startOfPacket,
              flags,
              targetId,
@@ -35,7 +35,7 @@ describe("Command Message", () => {
         expected.push(177); // precalcualted CRC
         expected.push(MessageParserFlags.endOfPacket);
 
-        expect(message.messageRawBytes).toEqual(expected);
+        expect(cmdMessage.messageRawBytes).toEqual(expected);
     });
 
     test("Generates byte buffer with escaped bytes correctly", () => {
@@ -48,15 +48,15 @@ describe("Command Message", () => {
         const commandId = 6;
         const commandName = "test-command";
 
-        const dataBytes: Array<number> = [MessageParserFlags.startOfPacket, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [MessageParserFlags.startOfPacket, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeCommandMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeCommandMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
                                                         dataBytes);
 
-        let expected: Array<number> =
+        const expected: number[] =
             [MessageParserFlags.startOfPacket,
              flags,
              targetId,
@@ -72,7 +72,7 @@ describe("Command Message", () => {
         expected.push(37); // precalcualted CRC
         expected.push(MessageParserFlags.endOfPacket);
 
-        expect(message.messageRawBytes).toEqual(expected);
+        expect(cmdMessage.messageRawBytes).toEqual(expected);
     });
 });
 
@@ -88,16 +88,16 @@ describe("Response Message", () => {
         const commandName = "test-command";
         const errorCode = 0;
 
-        const dataBytes: Array<number> = [0x01, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [0x01, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeResponseMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeResponseMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
                                                         errorCode,
                                                         dataBytes);
 
-        let expected: Array<number> =
+        let expected: number[] =
             [MessageParserFlags.startOfPacket,
              flags,
              targetId,
@@ -112,7 +112,7 @@ describe("Response Message", () => {
         expected.push(184); // precalcualted CRC
         expected.push(MessageParserFlags.endOfPacket);
 
-        expect(message.messageRawBytes).toEqual(expected);
+        expect(cmdMessage.messageRawBytes).toEqual(expected);
     });
 
     test("Generates byte buffer with escaped bytes correctly", () => {
@@ -126,16 +126,16 @@ describe("Response Message", () => {
         const commandName = "test-command";
         const errorCode = 0;
 
-        const dataBytes: Array<number> = [MessageParserFlags.startOfPacket, 0x02, 0x03, 0x04];
+        const dataBytes: number[] = [MessageParserFlags.startOfPacket, 0x02, 0x03, 0x04];
 
-        const message: BaseMessage = makeResponseMessage(flags, sequence,
+        const cmdMessage: BaseMessage = makeResponseMessage(flags, sequence,
                                                         targetId, sourceId,
                                                         deviceId, deviceName,
                                                         commandId, commandName,
                                                         errorCode,
                                                         dataBytes);
 
-        let expected: Array<number> =
+        const expected: number[] =
             [MessageParserFlags.startOfPacket,
              flags,
              targetId,
@@ -152,6 +152,6 @@ describe("Response Message", () => {
         expected.push(44); // precalcualted CRC
         expected.push(MessageParserFlags.endOfPacket);
 
-        expect(message.messageRawBytes).toEqual(expected);
+        expect(cmdMessage.messageRawBytes).toEqual(expected);
     });
 });

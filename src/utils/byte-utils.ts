@@ -17,8 +17,8 @@ export class ByteUtils {
      * @param value Number to convert
      * @param size Number of bytes to use
      */
-    public static numberToByteArray(value: number, size: number): Array<number> {
-        let bytes: Array<number> = [];
+    public static numberToByteArray(value: number, size: number): number[] {
+        const bytes: number[] = [];
 
         for (let i = 0; i < size; i++) {
             bytes.push(0);
@@ -29,7 +29,7 @@ export class ByteUtils {
         }
 
         for (let i = 0; i < bytes.length; i++) {
-            let byte: number = value & 0xFF;
+            const byte: number = value & 0xFF;
             bytes[i] = byte;
             value = (value - byte) / 256;
         }
@@ -37,8 +37,8 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static boolToByteArray(value: boolean): Array<number> {
-        let bytes: Array<number> = [0];
+    public static boolToByteArray(value: boolean): number[] {
+        const bytes: number[] = [0];
 
         if (value === undefined || value === null) {
             return bytes;
@@ -49,23 +49,23 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static int8ToByteArray(value: number): Array<number> {
+    public static int8ToByteArray(value: number): number[] {
         return this.numberToByteArray(value, 1);
     }
 
-    public static int16ToByteArray(value: number): Array<number> {
+    public static int16ToByteArray(value: number): number[] {
         return this.numberToByteArray(value, 2);
     }
 
-    public static int32ToByteArray(value: number): Array<number> {
+    public static int32ToByteArray(value: number): number[] {
         return this.numberToByteArray(value, 4);
     }
 
-    public static int64ToByteArray(value: number): Array<number> {
+    public static int64ToByteArray(value: number): number[] {
         return this.numberToByteArray(value, 8);
     }
 
-    public static floatToByteArray(value: number): Array<number> {
+    public static floatToByteArray(value: number): number[] {
         if (value === undefined || value === null) {
             return [];
         }
@@ -74,7 +74,7 @@ export class ByteUtils {
         floatArray[0] = value;
         const uint8Array: Uint8Array = new Uint8Array(floatArray.buffer);
 
-        let bytes: Array<number> = [];
+        const bytes: number[] = [];
         for (let i = 0; i < uint8Array.byteLength; i++) {
             bytes.push(uint8Array[i]);
         }
@@ -82,7 +82,7 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static doubleToByteArray(value: number): Array<number> {
+    public static doubleToByteArray(value: number): number[] {
         if (value === undefined || value === null) {
             return [];
         }
@@ -91,7 +91,7 @@ export class ByteUtils {
         floatArray[0] = value;
         const uint8Array: Uint8Array = new Uint8Array(floatArray.buffer);
 
-        let bytes: Array<number> = [];
+        const bytes: number[] = [];
         for (let i = 0; i < uint8Array.byteLength; i++) {
             bytes.push(uint8Array[i]);
         }
@@ -99,15 +99,15 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static stringToByteArray(value: string): Array<number> {
-        let bytes: Array<number> = [];
+    public static stringToByteArray(value: string): number[] {
+        const bytes: number[] = [];
 
         if (value === undefined || value === null || value.length === 0) {
             return bytes;
         }
 
         // Add null character
-        if (value[value.length - 1] != "\0") {
+        if (value[value.length - 1] !== "\0") {
             value += "\0";
         }
 
@@ -118,14 +118,14 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static sliceBytes(bytes: Array<number>, startingIdx: number, count: number): Array<number> {
-        let slicedBytes: Array<number> = [];
+    public static sliceBytes(bytes: number[], startingIdx: number, count: number): number[] {
+        const slicedBytes: number[] = [];
 
         if (!bytes || bytes.length === 0) {
             return slicedBytes;
         }
 
-        let endingIdx = startingIdx + count;
+        const endingIdx = startingIdx + count;
         if (endingIdx > bytes.length) {
             return slicedBytes;
         }
@@ -133,36 +133,36 @@ export class ByteUtils {
         return bytes.slice(startingIdx, endingIdx);
     }
 
-    public static getBoolBytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getBoolBytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 1);
     }
 
-    public static getInt8Bytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getInt8Bytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 1);
     }
 
-    public static getInt16Bytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getInt16Bytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 2);
     }
 
-    public static getInt32Bytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getInt32Bytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 4);
     }
 
-    public static getInt64Bytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getInt64Bytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 8);
     }
 
-    public static getFloatBytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getFloatBytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 4);
     }
 
-    public static getDoubleBytes(bytes: Array<number>, currentIdx: number): Array<number> {
+    public static getDoubleBytes(bytes: number[], currentIdx: number): number[] {
         return this.sliceBytes(bytes, currentIdx, 8);
     }
 
-    public static getStringBytes(bytes: Array<number>, currentIdx: number): Array<number> {
-        let slicedBytes: Array<number> = [];
+    public static getStringBytes(bytes: number[], currentIdx: number): number[] {
+        const slicedBytes: number[] = [];
 
         if (!bytes || bytes.length === 0) {
             return slicedBytes;
@@ -170,7 +170,7 @@ export class ByteUtils {
 
         const nullTerm = "\0".charCodeAt(0);
         for (let i = currentIdx; i < bytes.length; i++) {
-            let byte = bytes[i];
+            const byte = bytes[i];
 
             if (byte === nullTerm) {
                 if (slicedBytes.length === 0) {
@@ -186,14 +186,86 @@ export class ByteUtils {
         return slicedBytes;
     }
 
+    public static byteArrayToNumber(bytes: number[]): number {
+        let value: number = 0;
+
+        if (!bytes || bytes.length === 0) {
+            return value;
+        }
+
+        for (let i = bytes.length - 1; i >= 0; i--) {
+            value = (value * 256) + bytes[i];
+        }
+
+        return value;
+    }
+
+    public static byteArrayToBool(bytes: number[]): boolean {
+        if (!bytes) {
+            return false;
+        }
+
+        if (bytes.length !== 1) {
+            return false;
+        }
+
+        return bytes[0] === 1 ? true : false;
+    }
+
+    public static byteArrayToInt8(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 1) {
+            return 0;
+        }
+
+        return this.byteArrayToNumber(bytes);
+    }
+
+    public static byteArrayToInt16(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 2) {
+            return 0;
+        }
+
+        return this.byteArrayToNumber(bytes);
+    }
+
+    public static byteArrayToInt32(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 4) {
+            return 0;
+        }
+
+        return this.byteArrayToNumber(bytes);
+    }
+
+    public static byteArrayToInt64(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 8) {
+            return 0;
+        }
+
+        return this.byteArrayToNumber(bytes);
+    }
 
 
-
-    public static byteToNibbles(byte: number): Array<number> {
-        let bytes: Array<number> = [0, 0];
+    public static byteToNibbles(byte: number): number[] {
+        const bytes: number[] = [0, 0];
 
         for (let i = 0; i < bytes.length; i++) {
-            let temp = byte & 0x0F;
+            const temp = byte & 0x0F;
             bytes[i] = temp;
             byte = (byte - temp) / 16;
         }
@@ -201,7 +273,7 @@ export class ByteUtils {
         return bytes;
     }
 
-    public static nibblesToByte(nibbles: Array<number>): number {
+    public static nibblesToByte(nibbles: number[]): number {
         let value = 0;
         if (!nibbles) {
             return value;

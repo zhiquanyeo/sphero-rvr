@@ -12,12 +12,13 @@ interface TransportEvents {
 
 type TransportEventEmitter = StrictEventEmitter<EventEmitter, TransportEvents>;
 
-export abstract class TransportBase extends (EventEmitter as { new(): TransportEventEmitter }) {
-    public abstract write(data: string|Buffer|Array<number>, callback?: Function): boolean;
+export abstract class TransportBase extends (EventEmitter as new() => TransportEventEmitter) {
+    public abstract write(data: string|Buffer|number[],
+                          callback?: (error: Error, bytesWritten: number) => void): boolean;
     public abstract read(size?: number): string|Buffer|null;
-    public abstract close(callback?: Function): void;
-    public abstract flush(callback?: Function): void;
-    public abstract drain(callback?: Function): void;
+    public abstract close(callback?: (err?: Error) => void): void;
+    public abstract flush(callback?: (err?: Error) => void): void;
+    public abstract drain(callback?: (err?: Error) => void): void;
     public abstract pause(): this;
     public abstract resume(): this;
 }
@@ -31,7 +32,9 @@ export class SerialTransport extends TransportBase {
     constructor(path: string, openCallback?: SerialPort.ErrorCallback) {
         super();
 
-        this._serialPort = new SerialPort(path, openCallback);
+        this._serialPort = new SerialPort(path, {
+            baudRate: 115200
+        }, openCallback);
 
         this._serialPort.on("open", () => {
             this.emit("open");
@@ -92,8 +95,14 @@ export class MockTransport extends TransportBase {
 
     protected _shouldTriggerErrorOnNextAction: boolean = false;
 
+    protected _mockDataWrittenCallback: (data: Buffer | number[]) => void;
+
     public get lastWrittenBuffer() {
         return this._lastWrite;
+    }
+
+    public setMockDataWrittenCallback(cb: (data: Buffer | number[]) => void) : void {
+        this._mockDataWrittenCallback = cb;
     }
 
     public setDataForNextRead(buf: Buffer): void {
@@ -117,6 +126,10 @@ export class MockTransport extends TransportBase {
 
         this._shouldTriggerErrorOnNextAction = false;
 
+        if (this._mockDataWrittenCallback) {
+            this._mockDataWrittenCallback(this._lastWrite);
+        }
+
         return true;
     }
 
@@ -137,13 +150,13 @@ export class MockTransport extends TransportBase {
 
         return this._dataForNextRead.slice(0);
     }
-    public close(callback?: Function): void {
+    public close(callback?: (err?: Error) => void): void {
         // no-op
     }
-    public flush(callback?: Function): void {
+    public flush(callback?: (err?: Error) => void): void {
         // no-op
     }
-    public drain(callback?: Function): void {
+    public drain(callback?: (err?: Error) => void): void {
         // no-op
     }
     public pause(): this {

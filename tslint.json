@@ -18,7 +18,9 @@
             "limit": 120,
             "ignore-pattern": "^import | ^export {(.*?)}"
         }],
-        "interface-over-type-literal": false
+        "interface-over-type-literal": false,
+        "max-classes-per-file": false,
+        "no-bitwise": false
     },
     "rulesDirectory": [],
     "linterOptions": {
