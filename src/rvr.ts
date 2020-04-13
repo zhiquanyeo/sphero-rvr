@@ -9,30 +9,20 @@ import { makeWakeRequest, makeSleepRequest, makeGetBatteryPercentageRequest, par
 import { makeRawMotorsRequest, makeResetYawRequest, makeDriveWithHeadingRequest } from "./api/devices/drive/drive-commands";
 import { makeSetAllLedsRequest, makeSetSingleRgbLedRequest } from "./api/devices/io/io-commands";
 import Color = require("color");
+import { RobotLink } from "./api/robot-link";
 
 
 export class SpheroRVR {
     private readonly _transport: TransportBase;
     private readonly _parser: MessageParser;
     private readonly _commandPendingResponseMap: Map<string, DeferredPromise<IResponseMessage>>;
+    private readonly _robotLink: RobotLink;
 
     constructor(transport: TransportBase) {
 
         this._transport = transport;
-        this._parser = MessageParserFactory.getMessageParser();
+        this._robotLink = new RobotLink(transport);
 
-        // Hook up the parser events
-        this._parser.on("messageParsed", this.onMessageParsed.bind(this));
-
-        this._transport.on("data", (chunk) => {
-            this._parser.processIncomingBytes(chunk);
-        });
-
-        this._transport.on("error", (err) => {
-            console.log("Error from transport: ", err);
-        })
-
-        this._commandPendingResponseMap = new Map<string, DeferredPromise<IResponseMessage>>();
     }
 
     // === API ===
@@ -40,7 +30,7 @@ export class SpheroRVR {
     public echo(message: number[]): Promise<number[] | Error> {
         const cmdMessage = makeEchoRequest(message, TargetsAndSources.robotStTarget);
 
-        return this.sendCommandMessageInternal(cmdMessage)
+        return this._robotLink.sendCommandMessage(cmdMessage)
         .then(response => {
             const respPayload = parseEchoResponse(response.dataRawBytes);
             return respPayload.data;
@@ -55,7 +45,7 @@ export class SpheroRVR {
     public wake(): Promise<void | Error> {
         const message = makeWakeRequest();
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             console.log("Received error from WAKE: ", err);
             return err;
@@ -65,7 +55,7 @@ export class SpheroRVR {
     public sleep(): Promise<void | Error> {
         const message = makeSleepRequest();
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             console.log("Received error from SLEEP: ", err);
             return err;
@@ -75,7 +65,7 @@ export class SpheroRVR {
     public getBatteryPercentage(): Promise<number | Error> {
         const message = makeGetBatteryPercentageRequest();
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .then(response => {
             const respPayload = parseGetBatteryPercentageResponse(response.dataRawBytes);
             return respPayload.percentage;
@@ -90,7 +80,7 @@ export class SpheroRVR {
                         rightMode: RawMotorModes, rightSpeed: number): Promise<void | Error> {
         const message = makeRawMotorsRequest(leftMode, leftSpeed, rightMode, rightSpeed);
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             return err;
         });
@@ -99,7 +89,7 @@ export class SpheroRVR {
     public resetYaw(): Promise<void | Error> {
         const message = makeResetYawRequest();
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             return err;
         });
@@ -122,7 +112,7 @@ export class SpheroRVR {
 
         const message = makeDriveWithHeadingRequest(speed, heading);
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             return err;
         });
@@ -132,7 +122,7 @@ export class SpheroRVR {
     public setAllLeds(red: number, green: number, blue: number): Promise<void | Error> {
         const message = makeSetAllLedsRequest(red, green, blue);
 
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             return err;
         });
@@ -146,7 +136,7 @@ export class SpheroRVR {
 
     public setSingleLed(ledGroup: LED, red: number, green: number, blue: number): Promise<void | Error> {
         const message = makeSetSingleRgbLedRequest(ledGroup, red, green, blue);
-        return this.sendCommandMessageInternal(message)
+        return this._robotLink.sendCommandMessage(message)
         .catch(err => {
             return err;
         });
@@ -159,64 +149,4 @@ export class SpheroRVR {
 
     // === END API ===
 
-    private onMessageParsed(message: IMessage): void {
-        // Check if the message is a command from the robot (e.g. an async)
-        if (message.isCommand && !message.isResponse) {
-            let parsedData: object | null;
-            if (message.dataRawBytes.length > 0) {
-                // TODO implement handler
-            }
-            else {
-                parsedData = null;
-            }
-
-            return;
-        }
-
-        // Handle response messages
-        const mapKey: string = this.getMessageMapKey(message);
-        if (!this._commandPendingResponseMap.has(mapKey)) {
-            // TODO: error?
-        }
-
-        const responsePromise: DeferredPromise<IResponseMessage> | undefined =
-            this._commandPendingResponseMap.get(mapKey);
-        if (responsePromise) {
-            if (message.hasError) {
-                const errorMsg = `Response has error code ${message.errorCode} (${message.errorMessage})`;
-                responsePromise.reject(errorMsg);
-            }
-            else {
-                responsePromise.resolve(message);
-            }
-
-            this._commandPendingResponseMap.delete(mapKey);
-            return;
-        }
-    }
-
-    private getMessageMapKey(message: IMessage): string {
-        const mapKey: string = `${message.sequence}.${message.deviceId}.${message.commandId}`;
-        return mapKey;
-    }
-
-    private async sendCommandMessageInternal(message: ICommandMessage): Promise<IResponseMessage> {
-        const responsePromise: DeferredPromise<IResponseMessage> = new DeferredPromise<IResponseMessage>();
-
-        if (message.isRequestingResponse) {
-            const mapKey: string = this.getMessageMapKey(message);
-            this._commandPendingResponseMap.set(mapKey, responsePromise);
-        }
-        else {
-            responsePromise.resolve();
-        }
-
-        this._transport.write(message.messageRawBytes, (err: Error, bytesWritten: number) => {
-            if (err) {
-                console.log("Error sending: ", err);
-            }
-        });
-
-        return responsePromise.promise;
-    }
 }
