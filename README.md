@@ -1,3 +1,5 @@
+![Node.js CI](https://github.com/zhiquanyeo/sphero-rvr/workflows/Node.js%20CI/badge.svg)
+
 # sphero-rvr-base
 API for the Sphero RVR
 
