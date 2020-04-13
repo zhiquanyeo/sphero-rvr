@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/zhiquanyeo/sphero-rvr#readme",
   "devDependencies": {
+    "@types/color": "^3.0.1",
     "@types/jest": "^25.2.1",
     "@types/serialport": "^8.0.0",
     "jest": "^25.3.0",
@@ -28,6 +29,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "color": "^3.1.2",
     "serialport": "^8.0.7",
     "strict-event-emitter-types": "^2.0.0"
   }

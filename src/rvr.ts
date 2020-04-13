@@ -8,6 +8,7 @@ import { makeEchoRequest, parseEchoResponse } from "./api/devices/api-shell/api-
 import { makeWakeRequest, makeSleepRequest, makeGetBatteryPercentageRequest, parseGetBatteryPercentageResponse } from "./api/devices/power/power-commands";
 import { makeRawMotorsRequest, makeResetYawRequest, makeDriveWithHeadingRequest } from "./api/devices/drive/drive-commands";
 import { makeSetAllLedsRequest, makeSetSingleRgbLedRequest } from "./api/devices/io/io-commands";
+import Color = require("color");
 
 
 export class SpheroRVR {
@@ -137,12 +138,23 @@ export class SpheroRVR {
         });
     }
 
-    public setSingleLed(index: LED, red: number, green: number, blue: number): Promise<void | Error> {
-        const message = makeSetSingleRgbLedRequest(index, red, green, blue);
+    public setAllLedsColor(color: Color): Promise<void | Error> {
+        const [r, g, b] = color.rgb().array();
+
+        return this.setAllLeds(r, g, b);
+    }
+
+    public setSingleLed(ledGroup: LED, red: number, green: number, blue: number): Promise<void | Error> {
+        const message = makeSetSingleRgbLedRequest(ledGroup, red, green, blue);
         return this.sendCommandMessageInternal(message)
         .catch(err => {
             return err;
         });
+    }
+
+    public setSingleLedColor(ledGroup: LED, color: Color): Promise<void | Error> {
+        const [r, g, b] = color.rgb().array();
+        return this.setSingleLed(ledGroup, r, g, b);
     }
 
     // === END API ===

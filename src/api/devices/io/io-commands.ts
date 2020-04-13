@@ -31,11 +31,11 @@ export function makeSetAllLedsRequest(red: number, green: number, blue: number):
     return message;
 }
 
-export function makeSetSingleRgbLedRequest(index: LED, red: number, green: number, blue: number): ICommandMessage {
+export function makeSetSingleRgbLedRequest(ledGroup: LED, red: number, green: number, blue: number): ICommandMessage {
     const commandId = 0x1A;
 
-    const ledBitValue: number = (0x07 << index);
-    const ledBitmask: number[] = ByteUtils.int32ToByteArray(ledBitValue);
+    const ledBitValue: number = ledGroup;
+    const ledBitmask: number[] = ByteUtils.int32ToByteArray(ledBitValue).reverse();
     const ledData: number[] = [red, green, blue];
 
     const dataRawBytes: number[] = ledBitmask;
