@@ -260,6 +260,34 @@ export class ByteUtils {
         return this.byteArrayToNumber(bytes);
     }
 
+    public static byteArrayToFloat(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 4) {
+            return 0;
+        }
+
+        const byteArray: Uint8Array = new Uint8Array(bytes);
+        const floatArray: Float32Array = new Float32Array(byteArray.buffer);
+        return floatArray[0];
+    }
+
+    public static byteArrayToDouble(bytes: number[]): number {
+        if (!bytes) {
+            return 0;
+        }
+
+        if (bytes.length !== 8) {
+            return 0;
+        }
+
+        const byteArray: Uint8Array = new Uint8Array(bytes);
+        const floatArray: Float64Array = new Float64Array(byteArray.buffer);
+        return floatArray[0];
+    }
+
 
     public static byteToNibbles(byte: number): number[] {
         const bytes: number[] = [0, 0];
@@ -293,5 +321,65 @@ export class ByteUtils {
         }
 
         return byte;
+    }
+
+    private static _uint8MinValue: number = 0;
+    public static get uint8MinValue(): number {
+        return this._uint8MinValue;
+    }
+
+    private static _uint8MaxValue: number = 255;
+    public static get uint8MaxValue(): number {
+        return this._uint8MaxValue;
+    }
+
+    private static _int8MinValue: number = -128;
+    public static get int8MinValue(): number {
+        return this._int8MinValue;
+    }
+
+    private static _int8MaxValue: number = 127;
+    public static get int8MaxValue(): number {
+        return this._int8MaxValue;
+    }
+
+    private static _uint16MinValue: number = 0;
+    public static get uint16MinValue(): number {
+        return this._uint16MinValue;
+    }
+
+    private static _uint16MaxValue: number = 65535;
+    public static get uint16MaxValue(): number {
+        return this._uint16MaxValue;
+    }
+
+    private static _int16MinValue: number = -32768;
+    public static get int16MinValue(): number {
+        return this._int16MinValue;
+    }
+
+    private static _int16MaxValue: number = 32767;
+    public static get int16MaxValue(): number {
+        return this._int16MaxValue;
+    }
+
+    private static _uint32MinValue: number = 0;
+    public static get uint32MinValue(): number {
+        return this._uint32MinValue;
+    }
+
+    private static _uint32MaxValue: number = 4294967295;
+    public static get uint32MaxValue(): number {
+        return this._uint32MaxValue;
+    }
+
+    private static _int32MinValue: number = -2147483648;
+    public static get int32MinValue(): number {
+        return this._int32MinValue;
+    }
+
+    private static _int32MaxValue: number = 2147483647;
+    public static get int32MaxValue(): number {
+        return this._int32MaxValue;
     }
 }

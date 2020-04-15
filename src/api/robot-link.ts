@@ -2,17 +2,17 @@ import { TransportBase } from "../transport/serial-transport";
 import { MessageParser, MessageParserFactory } from "./message-parser";
 import { DeferredPromise } from "../utils/deferred-promise";
 import { IResponseMessage, IMessage, ICommandMessage } from "./messages";
+import { ICommandParserHandler, getCommandParserFactory } from "./command-parser-factory";
+import { IMessageLite, MessageLite } from "./message-lite";
 
-export interface IMessageNotificationObserver {
-    commandMessageReceivedNotification(cmdMsg: ICommandMessage): void;
-}
+export type MessageNotificationObserver = (cmdMsg: IMessageLite) => void;
 
 export class RobotLink {
     private readonly _transport: TransportBase;
     private readonly _parser: MessageParser;
     private readonly _commandPendingResponseMap: Map<string, DeferredPromise<IResponseMessage>>;
 
-    private readonly _messageNotificationObservers: IMessageNotificationObserver[] = [];
+    private readonly _messageNotificationObservers: MessageNotificationObserver[] = [];
 
     constructor(transport: TransportBase) {
         this._transport = transport;
@@ -36,12 +36,29 @@ export class RobotLink {
         if (message.isCommand && !message.isResponse) {
             let parsedData: object | null;
             if (message.dataRawBytes.length > 0) {
-                // TODO implement handler
+                const commandParserHandler: ICommandParserHandler | null =
+                    this.getCommandParserHandler(message.sourceId, message.deviceId, message.commandId);
+                if (!commandParserHandler) {
+                    console.log(`Unable to retrieve command parser for given command (${message.sourceId}, ${message.deviceId}, ${message.commandId})`);
+                    return;
+                }
+
+                parsedData = commandParserHandler(message.dataRawBytes);
             }
             else {
                 parsedData = null;
             }
 
+            const messageLite: IMessageLite = new MessageLite(
+                message.deviceId,
+                message.deviceName,
+                message.commandId,
+                message.commandName,
+                message.sourceId,
+                parsedData
+            );
+
+            this.broadcastReceivedCommandMessageCallback(messageLite);
             return;
         }
 
@@ -92,13 +109,19 @@ export class RobotLink {
         return responsePromise.promise;
     }
 
-    public registerMessageNotificationObserver(observer: IMessageNotificationObserver): void {
+    public registerMessageNotificationObserver(observer: MessageNotificationObserver): void {
         this._messageNotificationObservers.push(observer);
     }
 
-    protected broadcastReceivedCommandMessageCallback(msg: ICommandMessage): void {
+    protected broadcastReceivedCommandMessageCallback(msg: IMessageLite): void {
         for (const observer of this._messageNotificationObservers) {
-            observer.commandMessageReceivedNotification(msg);
+            observer(msg);
         }
+    }
+
+    public getCommandParserHandler(sourceId: number,
+                                   deviceId: number,
+                                   commandId: number): ICommandParserHandler | null {
+        return getCommandParserFactory().getParser(sourceId, deviceId, commandId);
     }
 }
